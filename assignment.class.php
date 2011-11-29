@@ -93,7 +93,7 @@ class assignment_turnitin extends assignment_base {
     }
 
     function delete_instance($assign) {
-        global $CFG, $USER, $DB;
+        global $CFG, $USER, $DB, $OUTPUT;
 
         if (!$assignment = $DB->get_record("assignment", array("id" => $assign->id)) ) {
             print_error("Assignment Not Found!");
@@ -123,31 +123,20 @@ class assignment_turnitin extends assignment_base {
         //$request = new TIIRequest($fullurl);
         $tii->send_post_request();
 
-        if ($tii->getRcode() < 100 || $tii->getRcode() == 206) {
-            $result = true;
-
-            if (! $DB->delete_records('assignment_submissions', array('assignment' => $assignment->id)) ) {
-                $result = false;
-            }
-
-            if (! $DB->delete_records('assignment', array('id' => $assignment->id)) ) {
-                $result = false;
-            }
-
-            if (! $DB->delete_records('event', array('instance' => $assignment->id)) ) {
-                $result = false;
-            }
-
-            // delete file area with all attachments - ignore errors
-            require_once($CFG->libdir.'/filelib.php');
-            fulldelete($CFG->dataroot.'/'.$assignment->course.'/'.$CFG->moddata.'/assignment/'.$assignment->id);
-
-            assignment_grade_item_delete($assignment);
-
-            return $result; 
-        } else {
-            print_error("Error on API Deletion!".$tii->getRcode()." - ".$tii->getRmessage());
+        if ($tii->getRcode() > 100) {
+            $OUTPUT->notification("Error on API Deletion!".$tii->getRcode()." - ".$tii->getRmessage());
         }
+
+        $DB->delete_records('assignment_submissions', array('assignment' => $assignment->id));
+        $DB->delete_records('assignment', array('id' => $assignment->id));
+        $DB->delete_records('event', array('instance' => $assignment->id));
+
+        // delete file area with all attachments - ignore errors
+        require_once($CFG->libdir.'/filelib.php');
+        fulldelete($CFG->dataroot.'/'.$assignment->course.'/'.$CFG->moddata.'/assignment/'.$assignment->id);
+
+        assignment_grade_item_delete($assignment);
+        return true;
     }
 
 
