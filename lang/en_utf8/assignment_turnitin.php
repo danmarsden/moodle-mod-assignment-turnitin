@@ -1,0 +1,7 @@
+<?php
+
+
+$string['typeturnitin'] = 'Turnitin';
+
+
+?>

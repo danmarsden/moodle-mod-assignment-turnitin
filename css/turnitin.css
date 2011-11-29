@@ -1,0 +1,12 @@
+.tii_early {
+    color:green;
+}
+
+.tii_late {
+    color: red;
+}
+
+.tii_frame {
+    min-height: 700px;
+    min-width: 700px;
+}
